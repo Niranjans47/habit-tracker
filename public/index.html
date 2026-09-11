@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Mindful Scholar – Habit Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "inverse-surface": "#213145",
+          "outline": "#777587",
+          "on-tertiary-fixed-variant": "#653e00",
+          "tertiary-fixed": "#ffddb8",
+          "on-secondary-fixed-variant": "#005049",
+          "surface-bright": "#f8f9ff",
+          "on-primary": "#ffffff",
+          "on-error": "#ffffff",
+          "on-primary-fixed-variant": "#3323cc",
+          "on-background": "#0b1c30",
+          "surface-container-low": "#eff4ff",
+          "on-tertiary-fixed": "#2a1700",
+          "on-secondary-container": "#006f66",
+          "tertiary-container": "#885500",
+          "secondary": "#006a61",
+          "surface-container-high": "#dce9ff",
+          "tertiary-fixed-dim": "#ffb95f",
+          "error-container": "#ffdad6",
+          "on-primary-fixed": "#0f0069",
+          "secondary-container": "#86f2e4",
+          "surface-container-highest": "#d3e4fe",
+          "primary-container": "#4f46e5",
+          "inverse-on-surface": "#eaf1ff",
+          "surface-container": "#e5eeff",
+          "primary": "#3525cd",
+          "surface-tint": "#4d44e3",
+          "secondary-fixed-dim": "#6bd8cb",
+          "background": "#f8f9ff",
+          "primary-fixed-dim": "#c3c0ff",
+          "on-surface-variant": "#464555",
+          "on-tertiary-container": "#ffd4a4",
+          "tertiary": "#684000",
+          "secondary-fixed": "#89f5e7",
+          "on-surface": "#0b1c30",
+          "surface-dim": "#cbdbf5",
+          "on-tertiary": "#ffffff",
+          "primary-fixed": "#e2dfff",
+          "on-secondary": "#ffffff",
+          "on-primary-container": "#dad7ff",
+          "surface-variant": "#d3e4fe",
+          "inverse-primary": "#c3c0ff",
+          "outline-variant": "#c7c4d8",
+          "surface": "#f8f9ff",
+          "error": "#ba1a1a",
+          "on-error-container": "#93000a",
+          "on-secondary-fixed": "#00201d",
+          "surface-container-lowest": "#ffffff"
+        },
+        borderRadius: {
+          DEFAULT: "0.25rem",
+          lg: "0.5rem",
+          xl: "0.75rem",
+          full: "9999px"
+        },
+        fontFamily: {
+          headline: ["Plus Jakarta Sans"],
+          body: ["Manrope"],
+          label: ["Manrope"]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .fill-icon { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .progress-ring-circle { transition: stroke-dashoffset 0.6s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .toast-item { animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .skeleton { background: linear-gradient(90deg, #e5eeff 25%, #dce9ff 50%, #e5eeff 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .bar-fill { transition: height 0.5s ease; }
+</style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+
+<!-- TOAST -->
+<div id="toast-container" class="fixed top-6 right-6 z-[9999] space-y-3 pointer-events-none"></div>
+
+<!-- ====== AUTH ====== -->
+<div id="auth-section" class="hidden">
+  <div class="min-h-screen bg-gradient-to-br from-surface to-surface-container-low flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-headline font-extrabold tracking-tighter text-primary mb-1">The Mindful Scholar</h1>
+        <p class="text-on-surface-variant text-sm">Your ritual of growth begins here.</p>
+      </div>
+      <div class="bg-surface-container-high p-1 rounded-xl flex mb-8">
+        <button id="tab-login" onclick="showTab('login')" class="flex-1 py-2.5 text-sm font-bold rounded-lg bg-surface-container-lowest text-primary shadow-sm transition-all">Sign In</button>
+        <button id="tab-register" onclick="showTab('register')" class="flex-1 py-2.5 text-sm font-bold rounded-lg text-on-surface-variant transition-all">Create Account</button>
+      </div>
+      <!-- Login -->
+      <div id="login-form" class="bg-surface-container-lowest rounded-2xl p-8" style="box-shadow:0 20px 40px rgba(11,28,48,0.06)">
+        <h2 class="text-2xl font-headline font-bold mb-6">Welcome back, Scholar.</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Email</label>
+            <input id="login-email" type="email" placeholder="scholar@university.edu" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-outline-variant"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Password</label>
+            <input id="login-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleLogin()" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface"/>
+          </div>
+          <button onclick="handleLogin()" class="w-full mt-2 py-4 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-full shadow-lg active:scale-95 transition-all">Sign In</button>
+        </div>
+        <p class="text-center text-sm text-on-surface-variant mt-6">No account? <button onclick="showTab('register')" class="text-primary font-bold">Create one</button></p>
+      </div>
+      <!-- Register -->
+      <div id="register-form" class="hidden bg-surface-container-lowest rounded-2xl p-8" style="box-shadow:0 20px 40px rgba(11,28,48,0.06)">
+        <h2 class="text-2xl font-headline font-bold mb-6">Begin your journey.</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Full Name</label>
+            <input id="reg-name" type="text" placeholder="Your name" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-outline-variant"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Email</label>
+            <input id="reg-email" type="email" placeholder="scholar@university.edu" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-outline-variant"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Password</label>
+            <input id="reg-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleRegister()" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface"/>
+          </div>
+          <button onclick="handleRegister()" class="w-full mt-2 py-4 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-full shadow-lg active:scale-95 transition-all">Create Account</button>
+        </div>
+        <p class="text-center text-sm text-on-surface-variant mt-6">Already a scholar? <button onclick="showTab('login')" class="text-primary font-bold">Sign in</button></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== APP ====== -->
+<div id="app-section" class="hidden">
+  <!-- TOP NAV -->
+  <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md" style="box-shadow:0 1px 0 rgba(11,28,48,0.06)">
+    <div class="flex justify-between items-center h-16 px-6 lg:px-8">
+      <div class="flex items-center space-x-10">
+        <span class="text-xl font-bold tracking-tighter text-primary font-headline">The Mindful Scholar</span>
+        <div class="hidden md:flex space-x-8">
+          <a href="#" onclick="return navigateTo('dashboard')" id="nav-dashboard" class="font-headline text-sm tracking-tight transition-colors">Dashboard</a>
+          <a href="#" onclick="return navigateTo('analytics')" id="nav-analytics" class="font-headline text-sm tracking-tight transition-colors">Insights</a>
+          <a href="#" onclick="return navigateTo('habits')" id="nav-habits" class="font-headline text-sm tracking-tight transition-colors">Rituals</a>
+          <a href="#" onclick="return navigateTo('settings')" id="nav-settings" class="font-headline text-sm tracking-tight transition-colors">Settings</a>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button onclick="return navigateTo('settings')" class="p-2 hover:bg-surface-container-low rounded-lg transition-all active:scale-95">
+          <span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex pt-16 min-h-screen">
+    <!-- SIDEBAR -->
+    <aside class="hidden lg:flex flex-col p-6 space-y-6 h-[calc(100vh-64px)] w-64 bg-surface-container-low sticky top-16">
+      <div>
+        <h2 class="font-headline font-extrabold text-primary text-lg">Mindful Scholar</h2>
+        <p class="text-xs text-on-surface-variant/60 font-medium mt-0.5">Stay Focused</p>
+      </div>
+      <nav class="space-y-1.5 flex-grow">
+        <a href="#" onclick="return navigateTo('dashboard')" id="side-dashboard" class="side-link flex items-center space-x-3 px-4 py-3 rounded-xl font-body text-sm font-medium transition-all">
+          <span class="material-symbols-outlined">checklist</span><span>Daily Rituals</span>
+        </a>
+        <a href="#" onclick="return navigateTo('analytics')" id="side-analytics" class="side-link flex items-center space-x-3 px-4 py-3 rounded-xl font-body text-sm font-medium transition-all">
+          <span class="material-symbols-outlined">insights</span><span>Insights</span>
+        </a>
+        <a href="#" onclick="return navigateTo('habits')" id="side-habits" class="side-link flex items-center space-x-3 px-4 py-3 rounded-xl font-body text-sm font-medium transition-all">
+          <span class="material-symbols-outlined">menu_book</span><span>Manage Rituals</span>
+        </a>
+        <a href="#" onclick="return navigateTo('settings')" id="side-settings" class="side-link flex items-center space-x-3 px-4 py-3 rounded-xl font-body text-sm font-medium transition-all">
+          <span class="material-symbols-outlined">settings</span><span>Account</span>
+        </a>
+      </nav>
+      <button onclick="navigateTo('habits');setTimeout(()=>document.getElementById('habit-name-input').focus(),200)" class="bg-gradient-to-br from-primary to-primary-container text-white py-3 px-4 rounded-full font-semibold shadow-lg active:scale-95 transition-all flex items-center justify-center space-x-2">
+        <span class="material-symbols-outlined">add</span><span>New Ritual</span>
+      </button>
+      <div class="pt-4 border-t border-outline-variant/10 space-y-1">
+        <button onclick="handleLogout()" class="w-full flex items-center space-x-3 px-4 py-2.5 text-on-surface-variant hover:text-error transition-colors font-body text-sm rounded-xl hover:bg-error-container/10">
+          <span class="material-symbols-outlined">logout</span><span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- PAGES -->
+    <main class="flex-1 overflow-y-auto bg-surface pb-24 lg:pb-0">
+
+      <!-- ─── DASHBOARD ─── -->
+      <div id="page-dashboard" class="page active px-6 lg:px-10 py-10">
+        <header class="mb-12">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div>
+              <h1 class="text-4xl lg:text-5xl font-headline font-extrabold tracking-tighter text-on-surface mb-2">Welcome, <span id="dash-name">Scholar</span>.</h1>
+              <p class="text-on-surface-variant text-lg max-w-md">Your habits are the sharpening stone of mastery. Focus on today's rituals.</p>
+            </div>
+            <div class="bg-surface-container-low px-6 py-3 rounded-xl shrink-0">
+              <p class="text-xs font-label text-on-surface-variant uppercase tracking-widest">Today</p>
+              <p id="dash-date" class="text-lg font-headline font-bold text-primary"></p>
+            </div>
+          </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <div class="lg:col-span-2 relative overflow-hidden bg-gradient-to-br from-primary to-indigo-900 rounded-[2rem] p-8 lg:p-10 text-white flex flex-col md:flex-row items-center gap-8">
+            <div class="flex-1 space-y-5 z-10">
+              <h2 class="text-3xl font-headline font-bold">Daily Focus</h2>
+              <p id="dash-progress-text" class="text-primary-fixed-dim/80 text-base lg:text-lg">Loading your ritual progress…</p>
+              <div class="flex flex-wrap gap-3">
+                <button onclick="document.getElementById('habit-list-dash').scrollIntoView({behavior:'smooth'})" class="bg-white text-primary px-6 py-3 rounded-full font-bold hover:bg-primary-fixed-dim transition-colors active:scale-95 text-sm">Resume Rituals</button>
+                <button onclick="navigateTo('habits')" class="bg-white/10 border border-white/20 text-white px-6 py-3 rounded-full font-bold backdrop-blur-sm hover:bg-white/20 transition-colors text-sm">Manage All</button>
+              </div>
+            </div>
+            <div class="relative flex items-center justify-center w-40 h-40 shrink-0 z-10">
+              <svg class="w-full h-full" viewBox="0 0 100 100">
+                <circle class="stroke-white/10" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"/>
+                <circle id="progress-ring" class="stroke-white progress-ring-circle" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-linecap="round" stroke-width="8"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span id="progress-pct" class="text-4xl font-headline font-extrabold">0%</span>
+                <span class="text-[10px] uppercase tracking-widest font-label opacity-70">Complete</span>
+              </div>
+            </div>
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-secondary/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-primary-container/30 rounded-full blur-2xl pointer-events-none"></div>
+          </div>
+
+          <div class="bg-surface-container-low rounded-[2rem] p-6 lg:p-8 flex flex-col justify-between" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+            <div>
+              <div class="flex justify-between items-start mb-6">
+                <h3 class="text-xl font-headline font-bold text-on-surface">Mastery Streaks</h3>
+                <span class="material-symbols-outlined fill-icon text-3xl" style="color:#885500">local_fire_department</span>
+              </div>
+              <div id="streak-sidebar" class="space-y-3">
+                <div class="skeleton h-12 rounded-xl"></div>
+                <div class="skeleton h-12 rounded-xl"></div>
+                <div class="skeleton h-12 rounded-xl"></div>
+              </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-outline-variant/10 flex justify-between text-sm">
+              <span class="text-on-surface-variant font-medium">Best Streak Ever</span>
+              <span id="best-streak" class="font-headline font-bold text-primary">— days</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Habit List -->
+        <section>
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-headline font-bold">Today's Rituals</h2>
+            <button onclick="loadDashboard()" class="flex items-center gap-1.5 text-sm text-on-surface-variant hover:text-primary transition-colors">
+              <span class="material-symbols-outlined text-lg">refresh</span> Refresh
+            </button>
+          </div>
+          <div id="habit-list-dash" class="space-y-4">
+            <div class="skeleton h-20 rounded-xl"></div>
+            <div class="skeleton h-20 rounded-xl"></div>
+            <div class="skeleton h-20 rounded-xl"></div>
+          </div>
+          <div id="empty-dash" class="hidden text-center py-20">
+            <span class="material-symbols-outlined text-6xl text-outline-variant">self_improvement</span>
+            <h3 class="text-xl font-headline font-bold mt-4 mb-2">No rituals yet.</h3>
+            <p class="text-on-surface-variant mb-6">Build your first habit to begin the scholar's path.</p>
+            <button onclick="navigateTo('habits')" class="bg-gradient-to-br from-primary to-primary-container text-white px-8 py-3 rounded-full font-bold shadow-lg active:scale-95 transition-all">Create First Ritual</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ─── ANALYTICS ─── -->
+      <div id="page-analytics" class="page px-6 lg:px-10 py-10">
+        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h1 class="text-4xl lg:text-5xl font-headline font-extrabold tracking-tighter mb-2">Insights</h1>
+            <p class="text-on-surface-variant text-lg">Visualising your journey toward mastery.</p>
+          </div>
+          <span class="bg-surface-container-low px-6 py-3 rounded-xl text-sm font-label text-on-surface-variant uppercase tracking-widest self-start">Last 30 Days</span>
+        </header>
+
+        <!-- Stat Row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+          <div class="bg-surface-container-lowest rounded-xl p-6" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+            <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Total Achieved</p>
+            <p id="stat-total" class="text-4xl font-headline font-extrabold text-primary">—</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-xl p-6" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+            <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Active Rituals</p>
+            <p id="stat-habits" class="text-4xl font-headline font-extrabold text-secondary">—</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-xl p-6" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+            <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Current Streak</p>
+            <p id="stat-streak" class="text-4xl font-headline font-extrabold" style="color:#684000">—</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-xl p-6" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+            <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Completion Rate</p>
+            <p id="stat-rate" class="text-4xl font-headline font-extrabold text-primary">—</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+          <!-- Bar Chart -->
+          <div class="lg:col-span-8 bg-surface-container-lowest rounded-xl p-8" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+            <div class="flex justify-between items-center mb-8">
+              <h3 class="text-xl font-headline font-bold">Habit Consistency</h3>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-primary inline-block"></span>
+                <span class="text-xs font-semibold text-on-surface-variant">Completions / Day</span>
+              </div>
+            </div>
+            <div id="bar-chart" class="relative h-56 w-full flex items-end justify-between gap-0.5 px-1"></div>
+            <div class="flex justify-between mt-4 text-xs font-bold text-on-surface-variant uppercase tracking-tighter">
+              <span>30d ago</span><span>20d ago</span><span>10d ago</span><span>Today</span>
+            </div>
+          </div>
+
+          <!-- Streak leaderboard -->
+          <div class="lg:col-span-4 bg-surface-container-low rounded-xl p-8">
+            <h3 class="text-xl font-headline font-bold mb-6">Longest Streaks</h3>
+            <div id="streak-board" class="space-y-4">
+              <div class="skeleton h-14 rounded-xl"></div>
+              <div class="skeleton h-14 rounded-xl"></div>
+            </div>
+          </div>
+
+          <!-- Heatmap -->
+          <div class="lg:col-span-7 bg-surface-container-lowest rounded-xl p-8" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+            <h3 class="text-xl font-headline font-bold mb-6">Weekly Activity</h3>
+            <div class="grid grid-cols-7 gap-1.5 mb-2">
+              <div class="text-center text-[10px] font-extrabold uppercase text-on-surface-variant/60">Mon</div>
+              <div class="text-center text-[10px] font-extrabold uppercase text-on-surface-variant/60">Tue</div>
+              <div class="text-center text-[10px] font-extrabold uppercase text-on-surface-variant/60">Wed</div>
+              <div class="text-center text-[10px] font-extrabold uppercase text-on-surface-variant/60">Thu</div>
+              <div class="text-center text-[10px] font-extrabold uppercase text-on-surface-variant/60">Fri</div>
+              <div class="text-center text-[10px] font-extrabold uppercase text-on-surface-variant/60">Sat</div>
+              <div class="text-center text-[10px] font-extrabold uppercase text-on-surface-variant/60">Sun</div>
+            </div>
+            <div id="heatmap" class="grid grid-cols-7 gap-1.5"></div>
+            <div class="mt-4 flex items-center justify-end gap-2">
+              <span class="text-[10px] font-bold text-on-surface-variant uppercase">Less</span>
+              <div class="flex gap-1">
+                <div class="w-3 h-3 rounded-sm" style="background:rgba(0,106,97,0.1)"></div>
+                <div class="w-3 h-3 rounded-sm" style="background:rgba(0,106,97,0.4)"></div>
+                <div class="w-3 h-3 rounded-sm" style="background:rgba(0,106,97,0.7)"></div>
+                <div class="w-3 h-3 rounded-sm" style="background:rgba(0,106,97,1)"></div>
+              </div>
+              <span class="text-[10px] font-bold text-on-surface-variant uppercase">More</span>
+            </div>
+          </div>
+
+          <!-- Per-habit -->
+          <div class="lg:col-span-5 bg-surface-container-high rounded-xl p-8">
+            <h3 class="text-xl font-headline font-bold mb-6">Ritual Breakdown</h3>
+            <div id="habit-breakdown" class="space-y-5"></div>
+          </div>
+        </div>
+
+        <!-- Insight Banner -->
+        <section class="bg-indigo-900 rounded-2xl p-8 relative overflow-hidden">
+          <div class="relative z-10 max-w-2xl">
+            <span class="text-indigo-300 text-xs font-bold uppercase tracking-[0.2em] mb-4 block">Scholar's Insight</span>
+            <h2 id="insight-msg" class="text-white text-3xl font-headline font-bold mb-4 leading-tight">Keep building your daily rituals.</h2>
+            <p class="text-indigo-100/80">"Excellence is an art won by training and habituation. We do not act rightly because we have virtue, but we have virtue because we have acted rightly." – Aristotle</p>
+          </div>
+          <div class="absolute -bottom-10 -right-10 w-64 h-64 rounded-full blur-3xl pointer-events-none" style="background:rgba(99,102,241,0.2)"></div>
+        </section>
+      </div>
+
+      <!-- ─── MANAGE HABITS ─── -->
+      <div id="page-habits" class="page px-6 lg:px-10 py-10">
+        <header class="mb-12">
+          <h1 class="text-4xl lg:text-5xl font-headline font-extrabold tracking-tighter mb-3">Manage Rituals</h1>
+          <p class="text-on-surface-variant text-lg">Curate the actions that shape your scholarly journey.</p>
+        </header>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+          <!-- List -->
+          <div class="xl:col-span-7 space-y-5">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-sm font-bold uppercase tracking-widest text-primary font-headline">Active Rituals</span>
+              <span id="habit-count" class="text-xs font-medium text-on-surface-variant">0 Total</span>
+            </div>
+            <div id="manage-list" class="space-y-4">
+              <div class="skeleton h-20 rounded-xl"></div>
+              <div class="skeleton h-20 rounded-xl"></div>
+            </div>
+            <div id="empty-manage" class="hidden text-center py-16">
+              <span class="material-symbols-outlined text-5xl text-outline-variant">edit_note</span>
+              <p class="text-on-surface-variant font-medium mt-2">No rituals yet — create your first one.</p>
+            </div>
+          </div>
+
+          <!-- Form -->
+          <div class="xl:col-span-5">
+            <div class="bg-surface-container-low p-8 rounded-2xl border-2 border-white/50 sticky top-24" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+              <div class="mb-7">
+                <h2 id="form-title" class="text-2xl font-headline font-bold mb-1">Create New Ritual</h2>
+                <p class="text-sm text-on-surface-variant">Define your next milestone.</p>
+              </div>
+              <div class="space-y-5">
+                <input type="hidden" id="editing-id"/>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Ritual Name *</label>
+                  <input id="habit-name-input" type="text" placeholder="e.g. Morning Deep Work" class="w-full bg-surface-container-lowest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-outline-variant font-body"/>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Description</label>
+                  <input id="habit-desc-input" type="text" placeholder="Brief note about this ritual" class="w-full bg-surface-container-lowest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-outline-variant font-body"/>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Frequency</label>
+                    <select id="habit-freq-input" class="w-full bg-surface-container-lowest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-body">
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Icon / Emoji</label>
+                    <input id="habit-icon-input" type="text" placeholder="⭐" maxlength="2" class="w-full bg-surface-container-lowest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-body text-center text-xl"/>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-primary mb-2">Reminder Time</label>
+                  <input id="habit-time-input" type="time" class="w-full bg-surface-container-lowest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-body"/>
+                </div>
+                <div class="flex gap-3 pt-2">
+                  <button onclick="saveHabit()" class="flex-1 py-4 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-full shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">add</span>
+                    <span id="form-btn-text">Establish Ritual</span>
+                  </button>
+                  <button id="cancel-btn" onclick="cancelEdit()" class="hidden py-4 px-6 bg-surface-container-highest text-on-surface font-bold rounded-full active:scale-95 transition-all">Cancel</button>
+                </div>
+              </div>
+              <div class="mt-8 pt-6 border-t border-outline-variant/10">
+                <div class="bg-primary-fixed/30 p-4 rounded-xl flex gap-3">
+                  <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary shrink-0">
+                    <span class="material-symbols-outlined">lightbulb</span>
+                  </div>
+                  <p class="text-xs text-on-primary-fixed-variant leading-relaxed">
+                    <strong>Scholar's Tip:</strong> Start with 2–3 habits. Consistency compounds. Add more as each becomes automatic.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── SETTINGS ─── -->
+      <div id="page-settings" class="page px-6 lg:px-10 py-10">
+        <header class="mb-12">
+          <h1 class="text-4xl lg:text-5xl font-headline font-extrabold tracking-tighter mb-2">Settings</h1>
+          <p class="text-on-surface-variant text-lg">Manage your account and preferences.</p>
+        </header>
+        <div class="max-w-4xl space-y-12">
+          <!-- Profile -->
+          <section>
+            <h2 class="text-xl font-headline font-bold text-primary mb-5 flex items-center gap-2">
+              <span class="material-symbols-outlined">person</span> Scholar Profile
+            </h2>
+            <div class="bg-surface-container-lowest p-8 rounded-xl" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Full Name</label>
+                  <input id="s-name" type="text" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-body"/>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Email (read-only)</label>
+                  <input id="s-email" type="email" readonly class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-on-surface-variant font-body cursor-not-allowed"/>
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">New Password (leave blank to keep)</label>
+                  <input id="s-pw" type="password" placeholder="New password" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-body"/>
+                </div>
+              </div>
+              <div class="mt-6 flex gap-3">
+                <button onclick="saveProfile()" class="px-8 py-3 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-full shadow-lg active:scale-95 transition-all">Save Changes</button>
+                <button onclick="loadSettings()" class="px-8 py-3 bg-surface-container-highest text-on-surface font-bold rounded-full active:scale-95 transition-all">Discard</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Journey Stats -->
+          <section>
+            <h2 class="text-xl font-headline font-bold text-primary mb-5 flex items-center gap-2">
+              <span class="material-symbols-outlined">bar_chart</span> Your Journey
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-5">
+              <div class="bg-surface-container-lowest p-6 rounded-xl text-center" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+                <p id="s-stat-habits" class="text-4xl font-headline font-extrabold text-primary mb-1">—</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Active Rituals</p>
+              </div>
+              <div class="bg-surface-container-lowest p-6 rounded-xl text-center" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+                <p id="s-stat-done" class="text-4xl font-headline font-extrabold text-secondary mb-1">—</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Total Achieved</p>
+              </div>
+              <div class="bg-surface-container-lowest p-6 rounded-xl text-center" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+                <p id="s-stat-streak" class="text-4xl font-headline font-extrabold mb-1" style="color:#684000">—</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Best Streak</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Logout -->
+          <section>
+            <div class="bg-surface-container-lowest rounded-xl overflow-hidden" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+              <button onclick="handleLogout()" class="w-full p-6 flex items-center justify-between hover:bg-surface-bright transition-colors group">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant">
+                    <span class="material-symbols-outlined">logout</span>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-semibold text-on-surface">Sign Out</p>
+                    <p class="text-xs text-on-surface-variant">End your current session</p>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+              </button>
+            </div>
+          </section>
+
+          <footer class="border-t border-outline-variant/20 pt-8">
+            <p class="text-sm text-on-surface-variant italic">"The secret of your future is hidden in your daily routine."</p>
+          </footer>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Mobile Bottom Nav -->
+  <div class="lg:hidden fixed bottom-0 left-0 w-full bg-surface-container-lowest h-20 flex items-center justify-around px-4 z-50" style="box-shadow:0 -4px 20px rgba(0,0,0,0.05)">
+    <a href="#" onclick="return navigateTo('dashboard')" id="mob-dashboard" class="mob-link flex flex-col items-center gap-1">
+      <span class="material-symbols-outlined">checklist</span>
+      <span class="text-[10px] font-bold uppercase">Daily</span>
+    </a>
+    <a href="#" onclick="return navigateTo('analytics')" id="mob-analytics" class="mob-link flex flex-col items-center gap-1">
+      <span class="material-symbols-outlined">insights</span>
+      <span class="text-[10px] font-bold uppercase">Insights</span>
+    </a>
+    <div class="relative -top-4">
+      <button onclick="navigateTo('habits');setTimeout(()=>document.getElementById('habit-name-input').focus(),200)" class="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+    </div>
+    <a href="#" onclick="return navigateTo('habits')" id="mob-habits" class="mob-link flex flex-col items-center gap-1">
+      <span class="material-symbols-outlined">menu_book</span>
+      <span class="text-[10px] font-bold uppercase">Habits</span>
+    </a>
+    <a href="#" onclick="return navigateTo('settings')" id="mob-settings" class="mob-link flex flex-col items-center gap-1">
+      <span class="material-symbols-outlined">settings</span>
+      <span class="text-[10px] font-bold uppercase">Account</span>
+    </a>
+  </div>
+</div>
+
+<!-- ===================== JS ===================== -->
+<script>
+const BASE = '';
+let _token = localStorage.getItem('ms_token') || '';
+let _user = null;
+let _habits = [];
+let _editId = null;
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function ah() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+_token }; }
+function today() { return new Date().toISOString().split('T')[0]; }
+function fmtDate(d) { return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}); }
+
+function toast(msg, err=false) {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast-item pointer-events-auto ${err ? 'bg-error' : 'bg-secondary'} text-white px-6 py-4 rounded-2xl shadow-lg font-body font-medium text-sm`;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+
+// ── Auth tab ─────────────────────────────────────────────────────────────
+function showTab(t) {
+  const isLogin = t === 'login';
+  document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+  document.getElementById('register-form').classList.toggle('hidden', isLogin);
+  const tl = document.getElementById('tab-login'), tr = document.getElementById('tab-register');
+  const onCls = 'flex-1 py-2.5 text-sm font-bold rounded-lg bg-surface-container-lowest text-primary shadow-sm transition-all';
+  const offCls = 'flex-1 py-2.5 text-sm font-bold rounded-lg text-on-surface-variant transition-all';
+  tl.className = isLogin ? onCls : offCls;
+  tr.className = isLogin ? offCls : onCls;
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  if (!email || !pw) return toast('Fill in all fields.', true);
+  try {
+    const r = await fetch(BASE+'/api/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password:pw})});
+    const d = await r.json();
+    if (!r.ok) return toast(d.msg||'Login failed', true);
+    _token = d.token; _user = d.user;
+    localStorage.setItem('ms_token', _token);
+    enterApp();
+  } catch { toast('Network error', true); }
+}
+
+async function handleRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pw = document.getElementById('reg-password').value;
+  if (!name||!email||!pw) return toast('Fill in all fields.', true);
+  try {
+    const r = await fetch(BASE+'/api/auth/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,password:pw})});
+    const d = await r.json();
+    if (!r.ok) return toast(d.msg||'Registration failed', true);
+    _token = d.token; _user = d.user;
+    localStorage.setItem('ms_token', _token);
+    enterApp();
+    toast('Welcome, Scholar! 🎓');
+  } catch { toast('Network error', true); }
+}
+
+function handleLogout() {
+  _token=''; _user=null; _habits=[];
+  localStorage.removeItem('ms_token');
+  document.getElementById('app-section').classList.add('hidden');
+  document.getElementById('auth-section').classList.remove('hidden');
+  showTab('login');
+}
+
+async function enterApp() {
+  document.getElementById('auth-section').classList.add('hidden');
+  document.getElementById('app-section').classList.remove('hidden');
+  if (!_user) {
+    try {
+      const r = await fetch(BASE+'/api/auth/me',{headers:ah()});
+      if (r.ok) _user = await r.json();
+    } catch {}
+  }
+  navigateTo('dashboard');
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function setNavActive(page) {
+  // Top nav
+  ['dashboard','analytics','habits','settings'].forEach(p => {
+    const el = document.getElementById('nav-'+p);
+    if (!el) return;
+    if (p === page) el.className = 'font-headline text-sm tracking-tight text-primary border-b-2 border-primary pb-0.5 font-semibold';
+    else el.className = 'font-headline text-sm tracking-tight text-on-surface-variant hover:text-primary transition-colors';
+  });
+  // Sidebar
+  document.querySelectorAll('.side-link').forEach(el => {
+    el.className = 'side-link flex items-center space-x-3 px-4 py-3 rounded-xl font-body text-sm font-medium transition-all text-on-surface-variant hover:text-primary hover:translate-x-1';
+  });
+  const sl = document.getElementById('side-'+page);
+  if (sl) sl.className = 'side-link flex items-center space-x-3 px-4 py-3 rounded-xl font-body text-sm font-medium transition-all bg-surface-container-lowest text-primary shadow-sm';
+  // Mobile
+  document.querySelectorAll('.mob-link').forEach(el => {
+    el.className = 'mob-link flex flex-col items-center gap-1 text-on-surface-variant';
+    const ic = el.querySelector('.material-symbols-outlined');
+    if (ic) ic.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+  });
+  const ml = document.getElementById('mob-'+page);
+  if (ml) {
+    ml.className = 'mob-link flex flex-col items-center gap-1 text-primary';
+    const ic = ml.querySelector('.material-symbols-outlined');
+    if (ic) ic.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+  }
+}
+
+function navigateTo(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  setNavActive(page);
+  if (page==='dashboard') loadDashboard();
+  if (page==='analytics') loadAnalytics();
+  if (page==='habits') loadManageHabits();
+  if (page==='settings') loadSettings();
+  return false;
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  document.getElementById('dash-date').textContent = fmtDate(new Date());
+  document.getElementById('dash-name').textContent = (_user?.name||'Scholar').split(' ')[0];
+  try {
+    const r = await fetch(BASE+'/api/habits', {headers:ah()});
+    if (!r.ok) throw 0;
+    _habits = await r.json();
+    renderDashHabits(_habits);
+    renderStreakSidebar(_habits);
+    const done = _habits.filter(h=>h.doneToday).length;
+    const total = _habits.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    const offset = 251.2 - (pct/100)*251.2;
+    document.getElementById('progress-ring').style.strokeDashoffset = offset;
+    document.getElementById('progress-pct').textContent = pct+'%';
+    document.getElementById('dash-progress-text').textContent = pct===100
+      ? 'All rituals achieved — mastery unlocked today! 🎓'
+      : `${done} of ${total} ritual${total!==1?'s':''} achieved today. Keep going.`;
+    // Best streak from stats
+    const sr = await fetch(BASE+'/api/habits/stats',{headers:ah()});
+    if (sr.ok) { const s=await sr.json(); document.getElementById('best-streak').textContent=s.longestEver+'d'; }
+  } catch { toast('Could not load habits', true); }
+}
+
+function renderDashHabits(habits) {
+  const el = document.getElementById('habit-list-dash');
+  const em = document.getElementById('empty-dash');
+  if (!habits.length) { el.innerHTML=''; em.classList.remove('hidden'); return; }
+  em.classList.add('hidden');
+  el.innerHTML = habits.map(h => `
+    <div class="relative bg-surface-container-lowest rounded-xl p-5 flex items-center gap-4 hover:bg-surface-bright transition-all overflow-hidden" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-full" style="background:${h.color||'#3525cd'}"></div>
+      <button onclick="toggleHabit('${h._id}',${!h.doneToday})" class="shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90 ${h.doneToday ? 'text-white' : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'}" style="${h.doneToday ? 'background:linear-gradient(135deg,#006a61,#6bd8cb)' : ''}">
+        <span class="material-symbols-outlined ${h.doneToday ? 'fill-icon' : ''}">${h.doneToday ? 'check_circle' : 'radio_button_unchecked'}</span>
+      </button>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xl">${h.icon||'⭐'}</span>
+          <h3 class="font-headline font-bold text-on-surface truncate ${h.doneToday ? 'line-through text-on-surface-variant' : ''}">${h.title}</h3>
+          ${h.doneToday ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary">✓ Achieved</span>' : ''}
+        </div>
+        <div class="flex items-center gap-2 mt-1 flex-wrap">
+          <span class="text-xs text-on-surface-variant capitalize">${h.frequency}</span>
+          ${h.streak>0 ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-800">🔥 ${h.streak}d streak</span>` : ''}
+          ${h.reminderTime ? `<span class="text-xs text-on-surface-variant">⏰ ${h.reminderTime}</span>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderStreakSidebar(habits) {
+  const sorted = [...habits].sort((a,b)=>b.streak-a.streak).slice(0,4);
+  const el = document.getElementById('streak-sidebar');
+  if (!sorted.length) { el.innerHTML='<p class="text-sm text-on-surface-variant text-center py-4">No streak data yet.</p>'; return; }
+  el.innerHTML = sorted.map((h,i) => `
+    <div class="flex items-center justify-between p-3 rounded-xl ${i===0?'bg-surface-container-lowest shadow-sm':'bg-surface-container-lowest/50'}">
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-black text-on-surface-variant/20">0${i+1}</span>
+        <div>
+          <p class="font-bold text-sm truncate max-w-[110px]">${h.title}</p>
+          <p class="text-xs text-on-surface-variant capitalize">${h.frequency}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 ${i===0?'px-2.5 py-1 rounded-full':'px-1'}" ${i===0?'style="background:rgba(136,85,0,0.1)"':''}>
+        ${i===0?'<span class="material-symbols-outlined fill-icon text-sm" style="color:#684000">star</span>':''}
+        <span class="text-sm font-bold ${i===0?'':'text-on-surface-variant'}" ${i===0?'style="color:#684000"':''}>${h.streak}d</span>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleHabit(id, status) {
+  try {
+    const r = await fetch(BASE+'/api/habits/mark', {method:'POST', headers:ah(), body:JSON.stringify({habitId:id, date:today(), status})});
+    if (!r.ok) throw 0;
+    _habits = _habits.map(h => h._id===id ? {...h, doneToday:status, streak:status?h.streak+1:Math.max(0,h.streak-1)} : h);
+    renderDashHabits(_habits);
+    const done = _habits.filter(h=>h.doneToday).length, total = _habits.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    document.getElementById('progress-ring').style.strokeDashoffset = 251.2-(pct/100)*251.2;
+    document.getElementById('progress-pct').textContent = pct+'%';
+    document.getElementById('dash-progress-text').textContent = pct===100 ? 'All rituals achieved — mastery unlocked today! 🎓' : `${done} of ${total} ritual${total!==1?'s':''} achieved today.`;
+    renderStreakSidebar(_habits);
+    if (status) toast((_habits.find(h=>h._id===id)?.icon||'✅')+' Ritual achieved!');
+  } catch { toast('Could not update ritual', true); }
+}
+
+// ── Analytics ────────────────────────────────────────────────────────────
+async function loadAnalytics() {
+  try {
+    const r = await fetch(BASE+'/api/habits/stats', {headers:ah()});
+    if (!r.ok) throw 0;
+    const s = await r.json();
+    document.getElementById('stat-total').textContent = s.totalCompleted;
+    document.getElementById('stat-habits').textContent = s.totalHabits;
+    document.getElementById('stat-streak').textContent = s.maxStreak+'d';
+    const rate = s.totalLogs ? Math.round(s.totalCompleted/s.totalLogs*100) : 0;
+    document.getElementById('stat-rate').textContent = rate+'%';
+    if (s.maxStreak>0) document.getElementById('insight-msg').textContent = `You're on a ${s.maxStreak}-day streak. Excellence is becoming your habit.`;
+    renderBarChart(s.dailyStats);
+    renderHeatmap(s.dailyStats);
+    // Per-habit
+    const hr = await fetch(BASE+'/api/habits', {headers:ah()});
+    if (hr.ok) {
+      const habits = await hr.json();
+      renderHabitBreakdown(habits, s.habitStats);
+      renderStreakBoard(habits);
+    }
+  } catch { toast('Could not load analytics', true); }
+}
+
+function renderBarChart(daily) {
+  const el = document.getElementById('bar-chart');
+  if (!daily.length) { el.innerHTML='<p class="text-sm text-on-surface-variant m-auto">No data yet.</p>'; return; }
+  const map = {};
+  daily.forEach(d => map[d._id]=d.completed);
+  const days = [];
+  for(let i=29;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().split('T')[0]); }
+  const max = Math.max(...days.map(d=>map[d]||0), 1);
+  el.innerHTML = days.map(d => {
+    const v = map[d]||0;
+    const h = Math.max(4, Math.round(v/max*100));
+    const op = v===0?0.08:(v/max*0.75+0.25).toFixed(2);
+    return `<div class="bar-fill flex-1 rounded-t-full" style="height:${h}%;background:rgba(53,37,205,${op});min-height:4px" title="${d}: ${v}"></div>`;
+  }).join('');
+}
+
+function renderHeatmap(daily) {
+  const map = {};
+  daily.forEach(d=>map[d._id]=d.completed);
+  const max = Math.max(...Object.values(map),1);
+  const el = document.getElementById('heatmap');
+  const today = new Date();
+  const dow = (today.getDay()+6)%7;
+  const start = new Date(today);
+  start.setDate(today.getDate()-dow-21);
+  let html='';
+  for(let i=0;i<28;i++) {
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const k=d.toISOString().split('T')[0]; const v=map[k]||0;
+    const op=v===0?0.05:Math.min(1,v/max*0.75+0.25);
+    html+=`<div class="aspect-square rounded-lg" style="background:rgba(0,106,97,${op})" title="${k}: ${v}"></div>`;
+  }
+  el.innerHTML=html;
+}
+
+function renderHabitBreakdown(habits, habitStats) {
+  const map={};
+  habitStats.forEach(s=>map[s._id]=s.completed);
+  const max=Math.max(...habits.map(h=>map[h._id]||0),1);
+  const el=document.getElementById('habit-breakdown');
+  if(!habits.length){el.innerHTML='<p class="text-sm text-on-surface-variant">No habits yet.</p>';return;}
+  el.innerHTML=habits.slice(0,6).map(h=>{
+    const v=map[h._id]||0;
+    const pct=Math.round(v/max*100);
+    return `<div class="space-y-2">
+      <div class="flex justify-between text-sm font-bold">
+        <span class="flex items-center gap-1.5 min-w-0"><span class="shrink-0">${h.icon||'⭐'}</span><span class="truncate">${h.title}</span></span>
+        <span class="text-primary shrink-0 ml-2">${v} done</span>
+      </div>
+      <div class="h-2 bg-surface-variant rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all" style="width:${pct}%;background:linear-gradient(90deg,#3525cd,#4f46e5)"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderStreakBoard(habits) {
+  const sorted=[...habits].sort((a,b)=>b.longestStreak-a.longestStreak).slice(0,4);
+  const el=document.getElementById('streak-board');
+  if(!sorted.length){el.innerHTML='<p class="text-sm text-on-surface-variant">No data yet.</p>';return;}
+  el.innerHTML=sorted.map((h,i)=>`
+    <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl shadow-sm">
+      <div class="flex items-center gap-4">
+        <span class="text-2xl font-black text-on-surface-variant/20">0${i+1}</span>
+        <div>
+          <h4 class="font-bold text-sm font-headline truncate max-w-[140px]">${h.title}</h4>
+          <p class="text-xs text-on-surface-variant capitalize">${h.frequency}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 ${i===0?'px-3 py-1 rounded-full':''}" ${i===0?'style="background:rgba(136,85,0,0.1)"':''}>
+        ${i===0?'<span class="material-symbols-outlined fill-icon text-sm" style="color:#684000">star</span>':''}
+        <span class="text-sm font-bold ${i===0?'':'text-on-surface-variant'}" ${i===0?'style="color:#684000"':''}>${h.longestStreak} Days</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── Manage Habits ─────────────────────────────────────────────────────────
+async function loadManageHabits() {
+  try {
+    const r = await fetch(BASE+'/api/habits', {headers:ah()});
+    if (!r.ok) throw 0;
+    _habits = await r.json();
+    renderManageList(_habits);
+  } catch { toast('Could not load habits', true); }
+}
+
+function renderManageList(habits) {
+  const el=document.getElementById('manage-list');
+  const em=document.getElementById('empty-manage');
+  document.getElementById('habit-count').textContent=`${habits.length} Total`;
+  if(!habits.length){el.innerHTML='';em.classList.remove('hidden');return;}
+  em.classList.add('hidden');
+  el.innerHTML=habits.map(h=>`
+    <div class="relative bg-surface-container-lowest rounded-xl p-5 flex items-center justify-between overflow-hidden hover:bg-surface-bright transition-all" style="box-shadow:0 20px 40px rgba(11,28,48,0.04)">
+      <div class="absolute left-0 top-0 bottom-0 w-1 rounded-full" style="background:${h.color||'#3525cd'}"></div>
+      <div class="flex items-center gap-4 pl-2 min-w-0">
+        <div class="w-11 h-11 rounded-full flex items-center justify-center text-xl shrink-0" style="background:${h.color||'#3525cd'}18">${h.icon||'⭐'}</div>
+        <div class="min-w-0">
+          <h3 class="font-headline font-bold truncate">${h.title}</h3>
+          <div class="flex flex-wrap gap-2 mt-1">
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-surface-container-low text-primary capitalize">${h.frequency}</span>
+            ${h.streak>0?`<span class="text-xs font-medium px-2 py-0.5 rounded-full text-yellow-700 bg-yellow-50">🔥 ${h.streak}d</span>`:''}
+            ${h.reminderTime?`<span class="text-xs text-on-surface-variant">⏰ ${h.reminderTime}</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0 ml-3">
+        <button onclick="startEdit('${h._id}')" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all">
+          <span class="material-symbols-outlined">edit</span>
+        </button>
+        <button onclick="deleteHabit('${h._id}')" class="p-2 text-error hover:bg-error-container/20 rounded-lg transition-all">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+async function saveHabit() {
+  const title = document.getElementById('habit-name-input').value.trim();
+  const description = document.getElementById('habit-desc-input').value.trim();
+  const frequency = document.getElementById('habit-freq-input').value;
+  const icon = document.getElementById('habit-icon-input').value.trim()||'⭐';
+  const reminderTime = document.getElementById('habit-time-input').value;
+  if (!title) return toast('Please enter a ritual name.', true);
+  const body = {title, description, frequency, icon, reminderTime};
+  try {
+    let r;
+    if (_editId) r = await fetch(BASE+'/api/habits/'+_editId, {method:'PUT', headers:ah(), body:JSON.stringify(body)});
+    else r = await fetch(BASE+'/api/habits', {method:'POST', headers:ah(), body:JSON.stringify(body)});
+    if (!r.ok) throw 0;
+    toast(_editId ? '✏️ Ritual updated!' : '✅ Ritual established!');
+    cancelEdit();
+    loadManageHabits();
+  } catch { toast('Could not save ritual', true); }
+}
+
+function startEdit(id) {
+  const h = _habits.find(h=>h._id===id); if(!h) return;
+  _editId = id;
+  document.getElementById('editing-id').value = id;
+  document.getElementById('habit-name-input').value = h.title;
+  document.getElementById('habit-desc-input').value = h.description||'';
+  document.getElementById('habit-freq-input').value = h.frequency;
+  document.getElementById('habit-icon-input').value = h.icon||'';
+  document.getElementById('habit-time-input').value = h.reminderTime||'';
+  document.getElementById('form-title').textContent = 'Edit Ritual';
+  document.getElementById('form-btn-text').textContent = 'Update Ritual';
+  document.getElementById('cancel-btn').classList.remove('hidden');
+  document.getElementById('habit-name-input').focus();
+}
+
+function cancelEdit() {
+  _editId = null;
+  ['editing-id','habit-name-input','habit-desc-input','habit-icon-input','habit-time-input'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('habit-freq-input').value='daily';
+  document.getElementById('form-title').textContent='Create New Ritual';
+  document.getElementById('form-btn-text').textContent='Establish Ritual';
+  document.getElementById('cancel-btn').classList.add('hidden');
+}
+
+async function deleteHabit(id) {
+  if (!confirm('Remove this ritual from your practice?')) return;
+  try {
+    const r = await fetch(BASE+'/api/habits/'+id, {method:'DELETE', headers:ah()});
+    if (!r.ok) throw 0;
+    toast('Ritual removed.');
+    loadManageHabits();
+  } catch { toast('Could not delete ritual', true); }
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const r = await fetch(BASE+'/api/users/profile', {headers:ah()});
+    if (r.ok) {
+      const u=await r.json();
+      document.getElementById('s-name').value=u.name||'';
+      document.getElementById('s-email').value=u.email||'';
+    }
+    const sr=await fetch(BASE+'/api/habits/stats',{headers:ah()});
+    if (sr.ok) {
+      const s=await sr.json();
+      document.getElementById('s-stat-habits').textContent=s.totalHabits;
+      document.getElementById('s-stat-done').textContent=s.totalCompleted;
+      document.getElementById('s-stat-streak').textContent=s.longestEver+'d';
+    }
+  } catch { toast('Could not load settings', true); }
+}
+
+async function saveProfile() {
+  const name=document.getElementById('s-name').value.trim();
+  const pw=document.getElementById('s-pw').value;
+  if (!name) return toast('Name cannot be empty.', true);
+  const body={name}; if(pw) body.password=pw;
+  try {
+    const r=await fetch(BASE+'/api/users/profile',{method:'PUT',headers:ah(),body:JSON.stringify(body)});
+    if(!r.ok) throw 0;
+    _user={..._user,name};
+    document.getElementById('s-pw').value='';
+    document.getElementById('dash-name').textContent=name.split(' ')[0];
+    toast('✅ Profile saved!');
+  } catch { toast('Could not save profile', true); }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  if (_token) {
+    try {
+      const r=await fetch(BASE+'/api/auth/me',{headers:ah()});
+      if (r.ok) { _user=await r.json(); enterApp(); return; }
+    } catch {}
+    localStorage.removeItem('ms_token'); _token='';
+  }
+  document.getElementById('auth-section').classList.remove('hidden');
+});
+</script>
+</body>
+</html>
